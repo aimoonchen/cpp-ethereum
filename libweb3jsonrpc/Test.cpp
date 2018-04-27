@@ -23,15 +23,38 @@
 #include "Test.h"
 #include <jsonrpccpp/common/errors.h>
 #include <jsonrpccpp/common/exception.h>
-#include <libethereum/ClientTest.h>
+#include <libdevcore/CommonJS.h>
 #include <libethereum/ChainParams.h>
+#include <libethereum/ClientTest.h>
 
 using namespace std;
 using namespace dev;
+using namespace dev::eth;
 using namespace dev::rpc;
 using namespace jsonrpc;
 
 Test::Test(eth::Client& _eth): m_eth(_eth) {}
+
+string exportLog(eth::LogEntries const& _logs)
+{
+    RLPStream s;
+    s.appendList(_logs.size());
+    for (eth::LogEntry const& l : _logs)
+        l.streamRLP(s);
+    return toHexPrefixed(sha3(s.out()));
+}
+
+string Test::test_getLogHash(string const& _txHash)
+{
+    if (m_eth.blockChain().isKnownTransaction(h256(_txHash)))
+    {
+        LocalisedTransaction t = m_eth.localisedTransaction(h256(_txHash));
+        BlockReceipts const& blockReceipts = m_eth.blockChain().receipts(t.blockHash());
+        if (blockReceipts.receipts.size() != 0)
+            return exportLog(blockReceipts.receipts[t.transactionIndex()].log());
+    }
+    return toJS(dev::EmptyListSHA3);
+}
 
 bool Test::test_setChainParams(Json::Value const& param1)
 {
