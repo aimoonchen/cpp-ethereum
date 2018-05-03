@@ -38,15 +38,6 @@ namespace dev
 /// The logging system's current verbosity.
 extern int g_logVerbosity;
 
-/// Temporary changes system's verbosity for specific function. Restores the old verbosity when function returns.
-/// Not thread-safe, use with caution!
-struct VerbosityHolder
-{
-    VerbosityHolder(int _temporaryValue, bool _force = false): oldLogVerbosity(g_logVerbosity) { if (g_logVerbosity >= 0 || _force) g_logVerbosity = _temporaryValue; }
-    ~VerbosityHolder() { g_logVerbosity = oldLogVerbosity; }
-    int oldLogVerbosity;
-};
-
 class ThreadContext
 {
 public:
